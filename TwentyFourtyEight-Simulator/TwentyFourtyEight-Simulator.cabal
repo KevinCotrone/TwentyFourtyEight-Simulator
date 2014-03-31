@@ -19,6 +19,22 @@ Executable main
                       , vector
                       , random
                       , containers
+                      , criterion
+  GHC-Options:        -O
+
+Executable bench
+  Hs-Source-Dirs:       src
+  Main-Is:              Benc.h9hs
+  Build-Depends:        base
+                      , hspec
+                      , matrix
+                      , vector
+                      , random
+                      , containers
+                      , criterion
+  GHC-Options:        -O
+
+
 Library
   Default-Language:     Haskell2010
   HS-Source-Dirs:       src
