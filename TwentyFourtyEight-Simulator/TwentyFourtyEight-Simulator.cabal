@@ -1,0 +1,49 @@
+Name:                   TwentyFourtyEight-Simulator
+Version:                0.0.0
+Author:                 Kevin Cotrone <kevincotrone@gmail.com>
+Maintainer:             Kevin Cotrone <kevincotrone@gmail.com>
+License:                BSD3
+License-File:           LICENSE
+Synopsis:               A simple 2048 simulator for Haskell
+Description:            Simulates a 2048 game given a function that 
+                        takes a board of the game and returns a move direction 
+Cabal-Version:          >= 1.10
+Build-Type:             Simple
+
+Executable main
+  Hs-Source-Dirs:       src
+  Main-Is:              Main.hs
+  Build-Depends:        base
+                      , hspec
+                      , matrix
+                      , vector
+                      , random
+                      , containers
+Library
+  Default-Language:     Haskell2010
+  HS-Source-Dirs:       src
+  GHC-Options:          -Wall
+  Exposed-Modules:      Simulation.TwentyFourtyEight
+  Other-Modules:        Simulation.TwentyFourtyEight.Internal
+  Build-Depends:        base >= 4 && < 5
+                       ,matrix >= 0.2.0.0     && < 0.3.0.0
+                       ,vector >= 0.10.0.0    && < 0.11.0.0
+                       ,random >= 1.0.0.0     && < 2.0.0.0
+                       ,containers >= 0.5.5.1 && < 0.6.0.0
+
+Test-Suite spec
+  Type:                 exitcode-stdio-1.0
+  Default-Language:     Haskell2010
+  Hs-Source-Dirs:       src
+                      , test
+  Ghc-Options:          -Wall
+  Main-Is:              Spec.hs
+  Build-Depends:        base
+                      , hspec
+                      , matrix
+                      , vector
+                      , random
+                      , containers
+Source-Repository head
+  Type:                 git
+--  Location:             
