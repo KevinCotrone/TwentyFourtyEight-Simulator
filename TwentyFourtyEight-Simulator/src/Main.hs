@@ -7,10 +7,9 @@ import Simulation.TwentyFourtyEight
 import Criterion.Main
 
 main :: IO ()
-main = do
-    defaultMain [
-      bcompare [
-        bench "Strategy 10"  (whnfIO (runTimes strategy' 10))
+main = defaultMain [
+          bcompare [
+            bench "Strategy 10"  (whnfIO (runTimes strategy' 10))
       , bench "Strategy 100"  (whnfIO (runTimes strategy' 100))
       , bench "Strategy 1000" (whnfIO (runTimes strategy' 1000))]]
     --]

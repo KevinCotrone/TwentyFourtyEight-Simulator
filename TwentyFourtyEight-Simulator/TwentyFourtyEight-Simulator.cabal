@@ -24,7 +24,7 @@ Executable main
 
 Executable bench
   Hs-Source-Dirs:       src
-  Main-Is:              Benc.h9hs
+  Main-Is:              Bench.hs
   Build-Depends:        base
                       , hspec
                       , matrix
