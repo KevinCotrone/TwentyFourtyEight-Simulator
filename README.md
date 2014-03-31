@@ -1,35 +1,35 @@
-<<<<<<< HEAD
-hi-hspec
-=================
+# TwentyFourtyEight-Simulator
 
-A template for [hi](https://github.com/fujimura/hi).
+A really simple stateless (you could add state if you wanted) 2048 simulator written in Haskell
 
-example:
+## Installation
 
 ```
-$ hi -m Foo.Bar -p foo-bar  -r git@github.com:fujimura/hi-hspec.git
-$ tree
-.
-├── LICENSE
-├── README.md
-├── foo-bar.cabal
-├── src
-│   └── Foo
-│       ├── Bar
-│       │   └── Internal.hs
-│       └── Bar.hs
-└── test
-    ├── Foo
-    │   └── BarSpec.hs
-    └── Spec.hs
-
-5 directories, 7 files
+cabal clean
+cabal configure
+cabal install
 ```
 
-Copyright 2013-2014 Fujimura Daisuke, under the MIT license.
-=======
-TwentyFourtyEight-Simulator
-===========================
+## Usage
 
-A really simple stateless 2048 simulator written in Haskell
->>>>>>> f7c6481e42b1db8845741e34d78c091d0fcb9010
+The only thing that needs to be done is importing Simulator.TwentyFourtyEight and a few other things 
+and then defining a simulation function
+
+```Haskell
+main :: IO ()
+main = do
+    (score, highestTile) <- runGameM strategy'
+    scores <- runTimes strategy' 10000
+    let highest = maximum $ scnds scores
+    putStrLn $ "The score was: " ++ (show score)
+    putStrLn $ "The highest tile was" ++ (show highest)
+```
+## How to run tests
+
+```
+cabal configure --enable-tests && cabal build && cabal test
+```
+
+## Contributing
+
+I'm more than happy to hear suggestions or take pull requests
