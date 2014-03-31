@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 hi-hspec
 =================
 
@@ -26,3 +27,9 @@ $ tree
 ```
 
 Copyright 2013-2014 Fujimura Daisuke, under the MIT license.
+=======
+TwentyFourtyEight-Simulator
+===========================
+
+A really simple stateless 2048 simulator written in Haskell
+>>>>>>> f7c6481e42b1db8845741e34d78c091d0fcb9010
