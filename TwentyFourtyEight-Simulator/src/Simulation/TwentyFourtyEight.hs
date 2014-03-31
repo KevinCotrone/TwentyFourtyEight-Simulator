@@ -7,45 +7,16 @@ import Simulation.TwentyFourtyEight.Internal
 --Containers
 import qualified Data.Matrix as M
 import qualified Data.Set as S
-import qualified Data.Vector as V
 
 --General
 import Control.Applicative
-import Data.List
 import Data.Maybe
-import Foreign.Storable
 import System.Random
 
 data MoveDirection = MoveRight | MoveLeft | MoveUp | MoveDown deriving (Read, Show, Eq, Ord)
 
--- | Create a new board and start the recursive simulation of the board with a log
---runGameMLog :: (M.Matrix (Maybe Int) -> IO MoveDirection) -> IO (Int, Int,[M.Matrix (Maybe Int)])
---runGameMLog sim = do
---  let board = M.matrix 4 4 (\(_,_) -> Nothing) --Default board with nothing on it
---  (Just p1) <- randBoardPoint board                        --Random points and tile values
---  v1 <- randomTileValue
---  let board' = editBoard board p1 (Just v1)
---  (Just p2) <- randBoardPoint board'                       --Second randbom point and tile value
---  v2 <- randomTileValue
---  let board'' = editBoard board' p2 (Just v2)       --Final board with both points added
---  list <- runGameM' sim board''
---  return (0, maximum . listTiles $ (last list), list)   
-
----- | Recursively run the game with a log
---runGameMLog' :: (M.Matrix (Maybe Int) ->IO MoveDirection) -> M.Matrix (Maybe Int) -> IO [ (M.Matrix (Maybe Int))]
---runGameMLog' sim board = do
---  direction <- sim board
---  board' <- addRandom (shiftBoard direction board)
---  let direction = possibleDirections board
---  case ((S.size direction) == 0) of -- Not sure of a better way to do this (Possibly fix!)
---    True -> do
---      return [board]
---    False -> do 
---      l <- runGameMLog' sim board'
---      return board:l
-
--- | Create a new board and start the recursive simulation of the board
-runGameM :: (M.Matrix (Maybe Int) -> IO MoveDirection) -> IO (Int, Int)
+-- | Create a new board and start the recursive simulation of the board but with Maybes
+runGameM :: (M.Matrix (Maybe Int) -> IO (Maybe MoveDirection)) -> IO (Int, Int)
 runGameM sim = do
   let board = M.matrix 4 4 (\(_,_) -> Nothing) --Default board with nothing on it
   (Just p1) <- randBoardPoint board                        --Random points and tile values
@@ -54,20 +25,48 @@ runGameM sim = do
   (Just p2) <- randBoardPoint board'                       --Second randbom point and tile value
   v2 <- randomTileValue
   let board'' = editBoard board' p2 (Just v2)       --Final board with both points added
-  runGameM' sim board''                              -- recursively run the game
+  runGameM' sim board''                         -- recursively run the game
 
 
 -- | Recursively run the game
-runGameM' :: (M.Matrix (Maybe Int) ->IO MoveDirection) -> M.Matrix (Maybe Int) -> IO (Int, Int)
+runGameM' :: (M.Matrix (Maybe Int) ->IO (Maybe MoveDirection)) -> M.Matrix (Maybe Int) -> IO (Int, Int)
 runGameM' sim board = do
   direction <- sim board
+  case direction of
+    Nothing -> return (0,(maximum . listTiles $ board)) --Game is over 
+    Just dir -> do
+                board' <- addRandom (shiftBoard dir board)
+                let pDirections = possibleDirections board
+                case ((S.size pDirections) == 0) of -- Not sure of a better way to do this (Possibly fix!)
+                  True -> do
+                    return (0,(maximum . listTiles $ board)) --Game is over
+                  False -> do 
+                      runGameM' sim board'
+
+-- | Create a new board and start the recursive simulation of the board
+runGame :: (M.Matrix (Maybe Int) -> IO MoveDirection) -> IO (Int, Int)
+runGame sim = do
+  let board = M.matrix 4 4 (\(_,_) -> Nothing) --Default board with nothing on it
+  (Just p1) <- randBoardPoint board                        --Random points and tile values
+  v1 <- randomTileValue
+  let board' = editBoard board p1 (Just v1)
+  (Just p2) <- randBoardPoint board'                       --Second randbom point and tile value
+  v2 <- randomTileValue
+  let board'' = editBoard board' p2 (Just v2)       --Final board with both points added
+  runGame' sim board''                              -- recursively run the game
+
+
+-- | Recursively run the game
+runGame' :: (M.Matrix (Maybe Int) ->IO MoveDirection) -> M.Matrix (Maybe Int) -> IO (Int, Int)
+runGame' sim board = do
+  direction <- sim board
   board' <- addRandom (shiftBoard direction board)
-  let direction = possibleDirections board
-  case ((S.size direction) == 0) of -- Not sure of a better way to do this (Possibly fix!)
+  let pDirs = possibleDirections board
+  case ((S.size pDirs) == 0) of -- Not sure of a better way to do this (Possibly fix!)
     True -> do
       return (0,(maximum . listTiles $ board)) --Game is over
     False -> do 
-        runGameM' sim board'
+        runGame' sim board'
 
 possibleDirections :: (M.Matrix (Maybe Int)) -> S.Set MoveDirection
 possibleDirections board = S.fromList . catMaybes $ map (possibleDirection board)  [MoveRight, MoveLeft, MoveUp, MoveDown] --Map over all move directions
@@ -119,7 +118,7 @@ randBoardPoint board = do
 justNothings :: [(Int,Int,Maybe Int)] -> [(Int, Int, Maybe Int)]
 justNothings [] = []
 justNothings (val@(_,_,Nothing):xs) = val : (justNothings xs)
-justNothings (x:xs) = justNothings xs
+justNothings (_:ys) = justNothings ys
 
 
 -- | Prints a board to the console
@@ -157,7 +156,7 @@ formatFlatList (r,((x,y):xs)) = (r,x,y):(formatFlatList (r,xs))
 
 -- | Get the positions of a M.matrix row given it's row
 getPositions :: Int -> [Maybe Int] -> [(Int, Maybe Int)]
-getPositions row cols = mapWithIndex (\i a -> (i,a)) cols
+getPositions _ cols = mapWithIndex (\i a -> (i,a)) cols
 
 shiftBoard :: MoveDirection -> M.Matrix (Maybe Int) -> (M.Matrix (Maybe Int))
 shiftBoard MoveRight = shiftRight
@@ -171,10 +170,8 @@ shiftBoard MoveDown = shiftDown
 shiftRight :: (M.Matrix (Maybe Int)) -> (M.Matrix (Maybe Int))
 shiftRight board =
   M.fromLists $ final
-  where size = M.nrows board
-        lists = toLists board
+  where lists = toLists board
         lists' = map catMaybes lists
-        changedRows = listChangedRows lists'
         combined = map (combineRight) lists'
         final = map (addRightMaybes (M.ncols board)) combined :: [[Maybe Int]]
 
@@ -204,8 +201,8 @@ combineLeft (x:xs) = x:combineLeft xs
 -- | Returns a list of the rows that have changed
 listChangedRows :: [[Int]] -> Int -> [Int]
 listChangedRows xs size = catMaybes $ mapWithIndex (matchesSize size) xs
-  where matchesSize size i xs = 
-          if (length xs == size)
+  where matchesSize matchSize i ys = 
+          if (length ys == matchSize)
             then Nothing
             else Just i
 
@@ -215,10 +212,8 @@ listChangedRows xs size = catMaybes $ mapWithIndex (matchesSize size) xs
 shiftLeft :: (M.Matrix (Maybe Int)) -> (M.Matrix (Maybe Int))
 shiftLeft board =
   M.fromLists $ final
-  where size = M.nrows board
-        lists = toLists board
+  where lists = toLists board
         lists' = map catMaybes lists
-        changedRows = listChangedRows lists'
         combined = map (combineLeft) lists'
         final = map (addLeftMaybes (M.ncols board)) combined :: [[Maybe Int]]
 

@@ -1,28 +1,25 @@
 module Main where
 
 
-import Data.Maybe
 import qualified Data.Matrix as M
 import qualified Data.Set as S
-import Data.Maybe
 import Simulation.TwentyFourtyEight
-import Test.Hspec
 
 
 main :: IO ()
 main = do
-    (score, highestTile) <- runGameM strategy'
+    (score, _) <- runGame strategy'
     scores <- runTimes strategy' 10000
     let highest = maximum $ scnds scores
     putStrLn $ "The score was: " ++ (show score)
     putStrLn $ "The highest tile was" ++ (show highest)
 
 runTimes :: (M.Matrix (Maybe Int) -> IO MoveDirection) -> Int -> IO [(Int, Int)]
-runTimes strat count = sequence $ runTimes' strat count
+runTimes start count = sequence $ runTimes' start count
 
 runTimes' :: (M.Matrix (Maybe Int) -> IO MoveDirection) -> Int -> [IO (Int,Int)]
-runTimes' strat 0 = []
-runTimes' strat x = (runGameM strat):(runTimes' strat (x-1))
+runTimes' _ 0 = []
+runTimes' start x = (runGame strat):(runTimes' start (x-1))
 
 scnds :: [(a,b)] -> [b]
 scnds [] = []
